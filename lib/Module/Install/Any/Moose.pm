@@ -10,29 +10,34 @@ BEGIN {
     @ISA     = qw(Module::Install::Base);
 }
 
-sub any_moose_requires {
-    my ($self, $module, $version, $other_version) = @_;
-    $version ||= 0;
-    $other_version ||= 0;
+sub requires_any_moose {
+    my $self = shift;
+    my ($module, %args);
 
-    $self->requires($module, $version);
+    if (@_ % 2 == 0) {
+        %args = @_;
+    } else {
+        ($module, %args) = @_;
+    }
 
-    my $alt;
-    if ($module =~ s/^(Mo[ou]se)?/
-        if ($1 eq 'Moose') {
-            $alt = 'Mouse';
-        } else {
-            $alt = 'Moose';
-        }
-        $alt;
-    /ex) {
-        my $default;
-        if ($alt eq 'Mouse') { # This is more like a requirement
-            $default = 'y';
-        } else {
-            $default = 'n';
-        }
+    my $prefer = ($args{prefer} ||= 'Mouse');
 
+    $self->_any_moose_setup($prefer, $module, %args);
+    $self->_any_moose_setup(
+        ($prefer eq 'Mouse' ? 'Moose' : 'Mouse'), $module, %args );
+}
+
+sub _any_moose_setup {
+    my ($self, $prefix, $frag, %args) = @_;
+
+    my $module  = $frag ? $prefix . $frag : $prefix;
+print STDERR "Setting up $module...\n";
+
+    my $prefer  = $args{ prefer };
+    my $version = $args{ lc $prefix };
+    if ($prefer eq $prefix) {
+        $self->requires($module, $version);
+    } else {
         print "[Any::Moose support for $module]\n",
               "- $module ... ";
 
@@ -46,12 +51,15 @@ sub any_moose_requires {
 
         if ($@) {
             print "missing\n";
-            my $y_n = ExtUtils::MakeMaker::prompt("  Add $module to the prerequisites?", $default);
+            my $y_n = ExtUtils::MakeMaker::prompt("  Add $module to the prerequisites?", 'n');
             if ($y_n =~ /^y(?:es)?$/i) {
-                $self->requires($module, $other_version);
+                $self->requires($module, $version);
+            } else {
+                $self->recommends($module, $version);
             }
         } else {
             print "loaded ($pr_version)\n";
+            $self->recommends($module, $version);
         }
     }
 }
@@ -71,17 +79,60 @@ Module::Install::Any::Moose - Any::Moose Support For Module::Install
     # your usual stuff...
 
     # This will ask the user if MouseX::AttributeHelpers should be installed
-    any_moose_requires 'MooseX::AttributeHelpers'; 
+    requires_any_moose 'X::AttributeHelpers'; 
 
     WriteAll;
 
-=head1 SPECIFYING VERSIONS
+=head1 METHODS
 
-If you need specific versions, here's what you can do
+=head2 requires_any_moose(%opts)
 
-    any_moose_requires 'MooseX::AttributeHelpers' => '0.13', '0.01';
+Speicifies Mouse/Moose as requirements. See the next entry for details on %opts
 
-The second version string is taken as the version of the other Mo[ou]se
-counterpart.
+=head2 requires_any_moose($module, %opts)
+
+Specifies Mouse/Moose extensions as requirements.
+
+$module should be a module name fragment, like '::Util::TypeConstraints' or
+'X::AttributeHelpers'.
+
+%opts may contain the following values:
+
+=over 4
+
+=item prefer $prefix
+
+Specify 'Moose' or 'Mouse'. This will tell Module::Install::Any::Moose to check for $prefix's version as the requirement. The other one would be an optional module.
+
+The default is Mouse.
+
+=item moose $version
+
+Specify the Moose alternative's minimum version.
+
+=item mouse $version
+
+Specify the Mouse alternative's minimum version.
+
+=back
+
+As an example, the following would require MooseX::AttributeHelpers 0.13, and MouseX::AttributeHelpers as an optional dependency:
+
+    any_moose_requires 'X::AttributeHelpers' => (
+        prefer => 'Moose',
+        moose => '0.13',
+        mouse => '0.01'
+    );
+
+=head1 AUTHOR
+
+Daisuke Maki C<< daisuke@endeworks.jp >>
+
+=head1 LICENSE
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
