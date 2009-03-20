@@ -1,5 +1,8 @@
 Changes
 =======
 
+0.00001 20 Mar 2009
+    * Add Any::Moose to prerequisite if it hasn't been specified yet
+
 0.00001 18 Mar 2009
     * Initial release
