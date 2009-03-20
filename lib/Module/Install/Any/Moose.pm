@@ -22,6 +22,12 @@ sub requires_any_moose {
 
     my $prefer = ($args{prefer} ||= 'Mouse');
 
+    my $requires = $self->requires;
+    if (! grep { $_->[0] eq 'Any::Moose' } @$requires ) {
+        print "Adding Any::Moose to prerequisites...\n";
+        $self->requires('Any::Moose');
+    }
+
     $self->_any_moose_setup($prefer, $module, %args);
     $self->_any_moose_setup(
         ($prefer eq 'Mouse' ? 'Moose' : 'Mouse'), $module, %args );
@@ -31,7 +37,6 @@ sub _any_moose_setup {
     my ($self, $prefix, $frag, %args) = @_;
 
     my $module  = $frag ? $prefix . $frag : $prefix;
-print STDERR "Setting up $module...\n";
 
     my $prefer  = $args{ prefer };
     my $version = $args{ lc $prefix };
