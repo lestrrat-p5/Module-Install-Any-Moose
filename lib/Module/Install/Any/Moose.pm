@@ -25,7 +25,7 @@ sub requires_any_moose {
     my $requires = $self->requires;
     if (! grep { $_->[0] eq 'Any::Moose' } @$requires ) {
         print "Adding Any::Moose to prerequisites...\n";
-        $self->requires('Any::Moose');
+        $self->requires('Any::Moose', 0.04);
     }
 
     $self->_any_moose_setup($prefer, $module, %args);
