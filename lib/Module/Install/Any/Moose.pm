@@ -123,7 +123,7 @@ Specify the Mouse alternative's minimum version.
 
 As an example, the following would require MooseX::AttributeHelpers 0.13, and MouseX::AttributeHelpers as an optional dependency:
 
-    any_moose_requires 'X::AttributeHelpers' => (
+    requires_any_moose 'X::AttributeHelpers' => (
         prefer => 'Moose',
         moose => '0.13',
         mouse => '0.01'
