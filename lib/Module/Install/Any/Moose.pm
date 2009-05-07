@@ -20,7 +20,8 @@ sub requires_any_moose {
         ($module, %args) = @_;
     }
 
-    my $prefer = ($args{prefer} ||= 'Mouse');
+    $args{prefer} ||= $ENV{ANY_MOOSE} || 'Mouse';
+    my $prefer = $args{prefer};
 
     my $requires = $self->requires;
     if (! grep { $_->[0] eq 'Any::Moose' } @$requires ) {
